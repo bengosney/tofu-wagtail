@@ -9,11 +9,24 @@ terraform {
   required_version = ">= 1.2.0"
 }
 
+variable "app-id" {
+  description = "Heroku App ID"
+}
+
+variable "postgresql-id" {
+  description = "Postgresql App ID"
+}
+
 provider "heroku" {}
 
-variable "app-id" {
-  description = "Stretch Their Legs website"
-  default = "stretchtheirlegs-web"
+import {
+  id = var.app-id
+  to = heroku_app.production
+}
+
+import { 
+  id = var.postgresql-id
+  to = heroku_addon.postgresql
 }
 
 resource "heroku_app" "production" {
@@ -23,19 +36,14 @@ resource "heroku_app" "production" {
   buildpacks = ["heroku/python"]
 }
 
-resource "heroku_addon" "postgres" {
+resource "heroku_addon" "postgresql" {
   app_id = heroku_app.production.id
   plan = "heroku-postgresql:mini"
 }
 
-resource "heroku_build" "production" {
-  app_id     = heroku_app.production.id
-  buildpacks = ["heroku/python"]
-
-  source {
-    url     = "https://github.com/mars/cra-example-app/archive/v2.1.1.tar.gz"
-    version = "2.1.1"
-  }
+import {
+  id = "${heroku_app.production.id}:web"
+  to = heroku_formation.production
 }
 
 resource "heroku_formation" "production" {
@@ -43,7 +51,6 @@ resource "heroku_formation" "production" {
   type       = "web"
   quantity   = 1
   size       = "Basic"
-  depends_on = [heroku_build.production]
 }
 
 output "production_app_url" {
