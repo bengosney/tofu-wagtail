@@ -9,6 +9,14 @@ terraform {
   required_version = ">= 1.2.0"
 }
 
+variable "domain" {
+  description = "Domain"
+}
+
+variable "ssl-id" {
+  description = "SSL UID"
+}
+
 variable "app-id" {
   description = "Heroku App ID"
 }
@@ -51,6 +59,29 @@ resource "heroku_formation" "production" {
   type       = "web"
   quantity   = 1
   size       = "Basic"
+}
+
+import {
+  id = "${heroku_app.production.name}:${var.ssl-id}"
+  to = heroku_ssl.production
+}
+
+resource "heroku_ssl" "production" {
+  app_id = heroku_app.production.uuid
+  certificate_chain = file("server.crt")
+
+  depends_on = [heroku_formation.production]
+}
+
+import {
+  id = "${heroku_app.production.name}:${var.domain}"
+  to = heroku_domain.production
+}
+
+resource "heroku_domain" "production" {
+  app_id   = heroku_app.production.id
+  hostname = var.domain
+  sni_endpoint_id = heroku_ssl.production.id
 }
 
 output "production_app_url" {
