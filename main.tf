@@ -38,7 +38,7 @@ resource "heroku_app" "production" {
 
 resource "heroku_addon" "postgresql" {
   app_id = heroku_app.production.id
-  plan = "heroku-postgresql:mini"
+  plan   = "heroku-postgresql:mini"
 }
 
 import {
@@ -47,16 +47,16 @@ import {
 }
 
 resource "heroku_formation" "production" {
-  app_id     = heroku_app.production.id
-  type       = "web"
-  quantity   = 1
-  size       = "Basic"
+  app_id   = heroku_app.production.id
+  type     = "web"
+  quantity = 1
+  size     = "Basic"
 }
 
 resource "heroku_ssl" "production" {
-  app_id = heroku_app.production.uuid
+  app_id            = heroku_app.production.uuid
   certificate_chain = cloudflare_origin_ca_certificate.origin_cert.certificate
-  private_key = tls_private_key.origin_cert.private_key_pem
+  private_key       = tls_private_key.origin_cert.private_key_pem
 
   depends_on = [heroku_formation.production]
 }
@@ -67,8 +67,8 @@ import {
 }
 
 resource "heroku_domain" "production" {
-  app_id   = heroku_app.production.id
-  hostname = var.domain
+  app_id          = heroku_app.production.id
+  hostname        = var.domain
   sni_endpoint_id = heroku_ssl.production.id
 }
 
@@ -77,7 +77,7 @@ output "production_app_url" {
 }
 
 output "domain" {
-  value = heroku_domain.production.cname  
+  value = heroku_domain.production.cname
 }
 
 
@@ -88,19 +88,19 @@ variable "zone-id" {
 }
 
 resource "cloudflare_record" "www" {
-  name            = "www"
-  proxied         = true
-  type            = "CNAME"
-  value           = heroku_domain.production.cname
-  zone_id         = var.zone-id
+  name    = "www"
+  proxied = true
+  type    = "CNAME"
+  value   = heroku_domain.production.cname
+  zone_id = var.zone-id
 }
 
 resource "cloudflare_record" "cdn" {
-  name            = "cdn"
-  proxied         = true
-  type            = "CNAME"
-  value           = aws_cloudfront_distribution.cdn.domain_name
-  zone_id         = var.zone-id
+  name    = "cdn"
+  proxied = true
+  type    = "CNAME"
+  value   = aws_cloudfront_distribution.cdn.domain_name
+  zone_id = var.zone-id
 }
 
 resource "tls_private_key" "origin_cert" {
@@ -139,17 +139,17 @@ resource "cloudflare_page_rule" "non-www-to-www" {
 
 provider "aws" {
   region = "eu-west-2"
-  alias = "london"
+  alias  = "london"
 }
 
 provider "aws" {
   region = "eu-west-1"
-  alias = "ireland"
+  alias  = "ireland"
 }
 
 import {
-  to = aws_s3_bucket.bucket
-  id = var.s3-bucket
+  to       = aws_s3_bucket.bucket
+  id       = var.s3-bucket
   provider = aws.london
 }
 
@@ -158,7 +158,7 @@ variable "s3-bucket" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  provider = aws.london
+  provider            = aws.london
   bucket              = var.s3-bucket
   object_lock_enabled = false
   tags = {
@@ -170,49 +170,49 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 locals {
-  s3_origin_id = "S3-${var.s3-bucket}"
-  cache_policy_CachingOptimized = "658327ea-f89d-4fab-a63d-7e88639e58f6" 
+  s3_origin_id                  = "S3-${var.s3-bucket}"
+  cache_policy_CachingOptimized = "658327ea-f89d-4fab-a63d-7e88639e58f6"
 }
 
 resource "aws_cloudfront_distribution" "cdn" {
-  provider                        = aws.london
-  aliases                         = [replace(var.domain, "/^www./", "cdn.")]
-  enabled                         = true
-  http_version                    = "http2"
-  is_ipv6_enabled                 = true
-  price_class                     = "PriceClass_100"
+  provider        = aws.london
+  aliases         = [replace(var.domain, "/^www./", "cdn.")]
+  enabled         = true
+  http_version    = "http2"
+  is_ipv6_enabled = true
+  price_class     = "PriceClass_100"
   default_cache_behavior {
-    allowed_methods            = ["GET", "HEAD"]
-    cached_methods             = ["GET", "HEAD"]
-    compress                   = true
-    smooth_streaming           = false
-    target_origin_id           = local.s3_origin_id
-    viewer_protocol_policy     = "allow-all"
-    cache_policy_id            = local.cache_policy_CachingOptimized
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    compress               = true
+    smooth_streaming       = false
+    target_origin_id       = local.s3_origin_id
+    viewer_protocol_policy = "allow-all"
+    cache_policy_id        = local.cache_policy_CachingOptimized
   }
   ordered_cache_behavior {
-    path_pattern               = "/static/*"
-    allowed_methods            = ["GET", "HEAD"]
-    cached_methods             = ["GET", "HEAD"]
-    target_origin_id           = var.domain
-    viewer_protocol_policy     = "redirect-to-https"
-    compress                   = true
-    smooth_streaming           = false
-    cache_policy_id            = local.cache_policy_CachingOptimized
+    path_pattern           = "/static/*"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = var.domain
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+    smooth_streaming       = false
+    cache_policy_id        = local.cache_policy_CachingOptimized
   }
   origin {
-    domain_name              = var.domain
-    origin_id                = var.domain
+    domain_name = var.domain
+    origin_id   = var.domain
     custom_origin_config {
-      http_port                = 80
-      https_port               = 443
-      origin_protocol_policy   = "https-only"
-      origin_ssl_protocols     = ["TLSv1.2"]
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
   origin {
-    domain_name              = aws_s3_bucket.bucket.bucket_regional_domain_name
-    origin_id                = local.s3_origin_id
+    domain_name = aws_s3_bucket.bucket.bucket_regional_domain_name
+    origin_id   = local.s3_origin_id
   }
   restrictions {
     geo_restriction {
