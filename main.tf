@@ -171,28 +171,18 @@ resource "aws_cloudfront_distribution" "cdn" {
     cache_policy_id            = local.cache_policy_CachingOptimized
   }
   origin {
-    connection_attempts      = 3
-    connection_timeout       = 10
     domain_name              = var.domain
-    origin_access_control_id = null
     origin_id                = var.domain
-    origin_path              = null
     custom_origin_config {
       http_port                = 80
       https_port               = 443
-      origin_keepalive_timeout = 5
       origin_protocol_policy   = "https-only"
-      origin_read_timeout      = 30
       origin_ssl_protocols     = ["TLSv1.2"]
     }
   }
   origin {
-    connection_attempts      = 3
-    connection_timeout       = 10
-    domain_name              = aws_s3_bucket.bucket.bucket_domain_name
-    origin_access_control_id = null
+    domain_name              = aws_s3_bucket.bucket.bucket_regional_domain_name
     origin_id                = local.s3_origin_id
-    origin_path              = null
   }
   restrictions {
     geo_restriction {
