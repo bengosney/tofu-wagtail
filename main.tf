@@ -124,6 +124,19 @@ resource "cloudflare_origin_ca_certificate" "origin_cert" {
   min_days_for_renewal = 365
 }
 
+resource "cloudflare_page_rule" "non-www-to-www" {
+  priority = 1
+  status   = "active"
+  target   = "${replace(var.domain, "/^www./", "")}/*"
+  zone_id  = var.zone-id
+  actions {
+    forwarding_url {
+      status_code = 301
+      url         = "https://${var.domain}/$1"
+    }
+  }
+}
+
 provider "aws" {
   region = "eu-west-2"
   alias = "london"
