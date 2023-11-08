@@ -95,6 +95,14 @@ resource "cloudflare_record" "www" {
   zone_id         = var.zone-id
 }
 
+resource "cloudflare_record" "cdn" {
+  name            = "cdn"
+  proxied         = true
+  type            = "CNAME"
+  value           = aws_cloudfront_distribution.cdn.domain_name
+  zone_id         = var.zone-id
+}
+
 resource "tls_private_key" "origin_cert" {
   algorithm = "RSA"
 }
@@ -118,11 +126,18 @@ resource "cloudflare_origin_ca_certificate" "origin_cert" {
 
 provider "aws" {
   region = "eu-west-2"
+  alias = "london"
+}
+
+provider "aws" {
+  region = "eu-west-1"
+  alias = "ireland"
 }
 
 import {
   to = aws_s3_bucket.bucket
   id = var.s3-bucket
+  provider = aws.london
 }
 
 variable "s3-bucket" {
@@ -130,6 +145,7 @@ variable "s3-bucket" {
 }
 
 resource "aws_s3_bucket" "bucket" {
+  provider = aws.london
   bucket              = var.s3-bucket
   object_lock_enabled = false
   tags = {
@@ -146,6 +162,7 @@ locals {
 }
 
 resource "aws_cloudfront_distribution" "cdn" {
+  provider                        = aws.london
   aliases                         = [replace(var.domain, "/^www./", "cdn.")]
   enabled                         = true
   http_version                    = "http2"
@@ -198,3 +215,8 @@ resource "aws_cloudfront_distribution" "cdn" {
     ssl_support_method             = "sni-only"
   }
 }
+
+#import {
+#  to = aws
+#  provider = aws.ireland
+#}
