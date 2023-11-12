@@ -91,3 +91,7 @@ resource "aws_cloudfront_distribution" "cdn" {
     ssl_support_method             = "sni-only"
   }
 }
+
+resource "aws_sesv2_email_identity" "email" {
+  email_identity = var.domain
+}

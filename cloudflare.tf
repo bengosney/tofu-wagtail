@@ -54,3 +54,13 @@ resource "cloudflare_page_rule" "non-www-to-www" {
     }
   }
 }
+
+resource "cloudflare_record" "cname_dkim" {
+  for_each = toset(aws_sesv2_email_identity.email.dkim_signing_attributes[0].tokens)
+
+  zone_id = var.zone-id
+  name    = "${each.value}._domainkey.${var.domain}"
+  value   = "${each.value}.dkim.amazonses.com"
+  type    = "CNAME"
+  proxied = false
+}
