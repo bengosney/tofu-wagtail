@@ -21,7 +21,7 @@ terraform {
 }
 
 variable "domain" {
-  description = "Domain"
+  description = "Domain (no www)"
 }
 
 variable "app-id" {

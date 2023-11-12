@@ -39,7 +39,7 @@ locals {
 
 resource "aws_cloudfront_distribution" "cdn" {
   provider        = aws.london
-  aliases         = [replace(var.domain, "/^www./", "cdn.")]
+  aliases         = ["cdn.${var.domain}"]
   enabled         = true
   http_version    = "http2"
   is_ipv6_enabled = true
@@ -57,15 +57,15 @@ resource "aws_cloudfront_distribution" "cdn" {
     path_pattern           = "/static/*"
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = var.domain
+    target_origin_id       = "www.${var.domain}"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
     smooth_streaming       = false
     cache_policy_id        = local.cache_policy_CachingOptimized
   }
   origin {
-    domain_name = var.domain
-    origin_id   = var.domain
+    domain_name = "www.${var.domain}"
+    origin_id   = "www.${var.domain}"
     custom_origin_config {
       http_port              = 80
       https_port             = 443
@@ -91,8 +91,3 @@ resource "aws_cloudfront_distribution" "cdn" {
     ssl_support_method             = "sni-only"
   }
 }
-
-#import {
-#  to = aws
-#  provider = aws.ireland
-#}

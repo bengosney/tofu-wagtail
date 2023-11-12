@@ -38,13 +38,13 @@ resource "heroku_ssl" "production" {
 }
 
 import {
-  id = "${heroku_app.production.name}:${var.domain}"
+  id = "${heroku_app.production.name}:www.${var.domain}"
   to = heroku_domain.production
 }
 
 resource "heroku_domain" "production" {
   app_id          = heroku_app.production.id
-  hostname        = var.domain
+  hostname        = "www.${var.domain}"
   sni_endpoint_id = heroku_ssl.production.id
 }
 
