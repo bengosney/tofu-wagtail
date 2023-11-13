@@ -10,12 +10,6 @@ provider "aws" {
   alias  = "ireland"
 }
 
-import {
-  to       = aws_s3_bucket.bucket
-  id       = var.s3-bucket
-  provider = aws.london
-}
-
 variable "s3-bucket" {
   description = "AWS S3 Bucket name"
 }

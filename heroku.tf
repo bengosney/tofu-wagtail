@@ -1,12 +1,11 @@
 provider "heroku" {}
 
-import {
-  id = var.app-id
-  to = heroku_app.production
+variable "app-name" {
+  description = "Heroku App Name"
 }
 
 resource "heroku_app" "production" {
-  name   = var.app-id
+  name   = var.app-name
   region = "eu"
 
   buildpacks = ["heroku/python"]
@@ -15,11 +14,6 @@ resource "heroku_app" "production" {
 resource "heroku_addon" "postgresql" {
   app_id = heroku_app.production.id
   plan   = "heroku-postgresql:mini"
-}
-
-import {
-  id = "${heroku_app.production.id}:web"
-  to = heroku_formation.production
 }
 
 resource "heroku_formation" "production" {
@@ -35,11 +29,6 @@ resource "heroku_ssl" "production" {
   private_key       = tls_private_key.origin_cert.private_key_pem
 
   depends_on = [heroku_formation.production]
-}
-
-import {
-  id = "${heroku_app.production.name}:www.${var.domain}"
-  to = heroku_domain.production
 }
 
 resource "heroku_domain" "production" {

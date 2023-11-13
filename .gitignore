@@ -60,3 +60,4 @@ terraform.rc
 
 *.crt
 import_script
+imports.tf

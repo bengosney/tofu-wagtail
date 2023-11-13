@@ -23,7 +23,3 @@ terraform {
 variable "domain" {
   description = "Domain (no www)"
 }
-
-variable "app-id" {
-  description = "Heroku App ID"
-}
