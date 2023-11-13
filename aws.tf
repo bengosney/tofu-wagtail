@@ -1,13 +1,6 @@
-
-
 provider "aws" {
   region = "eu-west-2"
   alias  = "london"
-}
-
-provider "aws" {
-  region = "eu-west-1"
-  alias  = "ireland"
 }
 
 variable "s3-bucket" {
@@ -18,12 +11,6 @@ resource "aws_s3_bucket" "bucket" {
   provider            = aws.london
   bucket              = var.s3-bucket
   object_lock_enabled = false
-  tags = {
-    project = "stl"
-  }
-  tags_all = {
-    project = "stl"
-  }
 }
 
 locals {
@@ -88,4 +75,5 @@ resource "aws_cloudfront_distribution" "cdn" {
 
 resource "aws_sesv2_email_identity" "email" {
   email_identity = var.domain
+  provider       = aws.london
 }
