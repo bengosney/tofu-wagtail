@@ -1,6 +1,11 @@
+locals {
+  s3_origin_id                  = "S3-${var.s3-bucket}"
+  cache_policy_CachingOptimized = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+  aws_region                    = "eu-west-2"
+}
+
 provider "aws" {
-  region = "eu-west-2"
-  alias  = "london"
+  region = local.aws_region
 }
 
 variable "s3-bucket" {
@@ -8,18 +13,11 @@ variable "s3-bucket" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  provider            = aws.london
   bucket              = var.s3-bucket
   object_lock_enabled = false
 }
 
-locals {
-  s3_origin_id                  = "S3-${var.s3-bucket}"
-  cache_policy_CachingOptimized = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-}
-
 resource "aws_cloudfront_distribution" "cdn" {
-  provider        = aws.london
   aliases         = ["cdn.${var.domain}"]
   enabled         = true
   http_version    = "http2"
@@ -75,5 +73,29 @@ resource "aws_cloudfront_distribution" "cdn" {
 
 resource "aws_sesv2_email_identity" "email" {
   email_identity = var.domain
-  provider       = aws.london
+}
+
+resource "aws_iam_user" "ses_user" {
+  name = "${replace(var.domain, ".", "-")}-SES"
+}
+
+resource "aws_iam_access_key" "ses_access_key" {
+  user = aws_iam_user.ses_user.name
+}
+
+data "aws_iam_policy_document" "ses_policy_document" {
+  statement {
+    actions   = ["ses:SendEmail", "ses:SendRawEmail"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "ses_policy" {
+  name   = "${replace(var.domain, ".", "-")}-SES"
+  policy = data.aws_iam_policy_document.ses_policy_document.json
+}
+
+resource "aws_iam_user_policy_attachment" "user_policy" {
+  user       = aws_iam_user.ses_user.name
+  policy_arn = aws_iam_policy.ses_policy.arn
 }

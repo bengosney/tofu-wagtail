@@ -9,6 +9,13 @@ resource "heroku_app" "production" {
   region = "eu"
 
   buildpacks = ["heroku/python"]
+
+  sensitive_config_vars = {
+    SMTP_PASS = aws_iam_access_key.ses_access_key.ses_smtp_password_v4
+    SMTP_USER = aws_iam_access_key.ses_access_key.id
+    SMTP_PORT = "587"
+    SMTP_HOST = "email-smtp.${local.aws_region}.amazonaws.com"
+  }
 }
 
 resource "heroku_addon" "postgresql" {
