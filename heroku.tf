@@ -11,13 +11,15 @@ resource "heroku_app" "production" {
   buildpacks = ["heroku/python"]
 
   sensitive_config_vars = {
-    SMTP_PASS               = aws_iam_access_key.ses_access_key.ses_smtp_password_v4
-    SMTP_USER               = aws_iam_access_key.ses_access_key.id
+    SMTP_PASS               = aws_iam_access_key.access_key.ses_smtp_password_v4
+    SMTP_USER               = aws_iam_access_key.access_key.id
     SMTP_PORT               = "587"
     SMTP_HOST               = "email-smtp.${local.aws_region}.amazonaws.com"
     AWS_REGION_NAME         = local.aws_region
     AWS_S3_CUSTOM_DOMAIN    = "cdn.${var.domain}"
     AWS_STORAGE_BUCKET_NAME = var.s3-bucket
+    AWS_ACCESS_KEY_ID       = aws_iam_access_key.access_key.id
+    AWS_SECRET_ACCESS_KEY   = aws_iam_access_key.access_key.secret
   }
 }
 

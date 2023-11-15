@@ -17,6 +17,33 @@ resource "aws_s3_bucket" "bucket" {
   object_lock_enabled = false
 }
 
+resource "aws_s3_bucket_policy" "access" {
+  bucket = var.s3-bucket
+  policy = data.aws_iam_policy_document.s3_access.json
+}
+
+data "aws_iam_policy_document" "s3_access" {
+  statement {
+    actions = ["s3:GetObject"]
+    effect  = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    resources = ["${aws_s3_bucket.bucket.arn}/*"]
+    sid       = "PublicReadForGetBucketObjects"
+  }
+  statement {
+    actions = ["s3:*"]
+    effect  = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = [aws_iam_user.primary.arn]
+    }
+    resources = [aws_s3_bucket.bucket.arn, "${aws_s3_bucket.bucket.arn}/*"]
+  }
+}
+
 resource "aws_cloudfront_distribution" "cdn" {
   aliases         = ["cdn.${var.domain}"]
   enabled         = true
@@ -75,12 +102,12 @@ resource "aws_sesv2_email_identity" "email" {
   email_identity = var.domain
 }
 
-resource "aws_iam_user" "ses_user" {
-  name = "${replace(var.domain, ".", "-")}-SES"
+resource "aws_iam_user" "primary" {
+  name = "${replace(var.domain, ".", "-")}-primary"
 }
 
-resource "aws_iam_access_key" "ses_access_key" {
-  user = aws_iam_user.ses_user.name
+resource "aws_iam_access_key" "access_key" {
+  user = aws_iam_user.primary.name
 }
 
 data "aws_iam_policy_document" "ses_policy_document" {
@@ -96,6 +123,6 @@ resource "aws_iam_policy" "ses_policy" {
 }
 
 resource "aws_iam_user_policy_attachment" "user_policy" {
-  user       = aws_iam_user.ses_user.name
+  user       = aws_iam_user.primary.name
   policy_arn = aws_iam_policy.ses_policy.arn
 }
