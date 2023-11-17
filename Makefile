@@ -27,7 +27,7 @@ imports.tf:
 	@aws s3 cp s3://${TERAFORM_BUCKET}/${TERAFORM_BUCKET_PATH}/$@ . || touch $@
 
 terraform.tfvars:
-	@aws s3 cp s3://${TERAFORM_BUCKET}/${TERAFORM_BUCKET_PATH}/$@ .
+	@aws s3 cp s3://${TERAFORM_BUCKET}/${TERAFORM_BUCKET_PATH}/$@ . || touch $@
 
 upload: imports.tf terraform.tfvars
 	@for f in $^; do aws s3 cp $$f s3://${TERAFORM_BUCKET}/${TERAFORM_BUCKET_PATH}/$$f; done
