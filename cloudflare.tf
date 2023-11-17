@@ -6,19 +6,30 @@ variable "zone-id" {
 }
 
 resource "cloudflare_record" "www" {
-  name    = "www"
-  proxied = true
-  type    = "CNAME"
-  value   = heroku_domain.production.cname
-  zone_id = var.zone-id
+  name            = "www"
+  proxied         = true
+  type            = "CNAME"
+  value           = heroku_domain.production.cname
+  zone_id         = var.zone-id
+  allow_overwrite = true
+}
+
+resource "cloudflare_record" "root" {
+  name            = var.domain
+  proxied         = true
+  type            = "CNAME"
+  value           = "www.${var.domain}"
+  zone_id         = var.zone-id
+  allow_overwrite = true
 }
 
 resource "cloudflare_record" "cdn" {
-  name    = "cdn"
-  proxied = true
-  type    = "CNAME"
-  value   = aws_cloudfront_distribution.cdn.domain_name
-  zone_id = var.zone-id
+  name            = "cdn"
+  proxied         = true
+  type            = "CNAME"
+  value           = aws_cloudfront_distribution.cdn.domain_name
+  zone_id         = var.zone-id
+  allow_overwrite = true
 }
 
 resource "tls_private_key" "origin_cert" {
@@ -58,11 +69,12 @@ resource "cloudflare_page_rule" "non-www-to-www" {
 resource "cloudflare_record" "cname_dkim" {
   count = 3
 
-  zone_id    = var.zone-id
-  name       = "${aws_sesv2_email_identity.email.dkim_signing_attributes[0].tokens[count.index]}._domainkey.${var.domain}"
-  value      = "${aws_sesv2_email_identity.email.dkim_signing_attributes[0].tokens[count.index]}.dkim.amazonses.com"
-  type       = "CNAME"
-  proxied    = false
-  comment    = "DKIM ${count.index} - SES"
-  depends_on = [aws_sesv2_email_identity.email]
+  zone_id         = var.zone-id
+  name            = "${aws_sesv2_email_identity.email.dkim_signing_attributes[0].tokens[count.index]}._domainkey.${var.domain}"
+  value           = "${aws_sesv2_email_identity.email.dkim_signing_attributes[0].tokens[count.index]}.dkim.amazonses.com"
+  type            = "CNAME"
+  proxied         = false
+  comment         = "DKIM ${count.index} - SES"
+  depends_on      = [aws_sesv2_email_identity.email]
+  allow_overwrite = true
 }
