@@ -1,4 +1,4 @@
-.PHONY: help check init clean download
+.PHONY: help check init clean download upload
 .DEFAULT_GOAL: help
 .PRECIOUS: imports.tf terraform.tfvars
 
@@ -24,10 +24,13 @@ help: ## Display this help
 	@touch $@
 
 imports.tf:
-	aws s3api get-object --bucket "${TERAFORM_BUCKET}" --key "${TERAFORM_BUCKET_PATH}/$@" "$@"
+	@aws s3 cp s3://${TERAFORM_BUCKET}/${TERAFORM_BUCKET_PATH}/$@ . || touch $@
 
 terraform.tfvars:
-	aws s3api get-object --bucket "${TERAFORM_BUCKET}" --key "${TERAFORM_BUCKET_PATH}/$@" "$@"
+	@aws s3 cp s3://${TERAFORM_BUCKET}/${TERAFORM_BUCKET_PATH}/$@ .
+
+upload: imports.tf terraform.tfvars
+	@for f in $^; do aws s3 cp $$f s3://${TERAFORM_BUCKET}/${TERAFORM_BUCKET_PATH}/$$f; done
 
 check: ## Check the env vars are set
 ifndef TERAFORM_BUCKET
