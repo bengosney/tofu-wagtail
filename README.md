@@ -1,7 +1,7 @@
-# tofu-wagtail
+# Tofu-Wagtail
 This is my attempt at using OpenTofu to manage Heroku, AWS and Cloudflare for web hosting
 
-## Useage
+## Usage
 This should work with either terraform or OpenTofu
 The state is stored in an S3 bucket, along with `imports.tf` and `terraform.tfvars` files.
 To do this a working AWS CLI and the following env vars are required:
