@@ -1,11 +1,14 @@
 locals {
   s3_origin_id                  = "S3-${var.s3-bucket}"
   cache_policy_CachingOptimized = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-  aws_region                    = "eu-west-2"
+}
+
+variable "aws_region" {
+  description = "AWS region"
 }
 
 provider "aws" {
-  region = local.aws_region
+  region = var.aws_region
 }
 
 variable "s3-bucket" {
