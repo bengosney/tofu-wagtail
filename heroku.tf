@@ -4,6 +4,16 @@ variable "app-name" {
   description = "Heroku App Name"
 }
 
+variable "heroku_dyno_qty" {
+  description = "Quantity of dynos"
+  default     = 1
+}
+
+variable "heroku_dyno_size" {
+  description = "Size of dynos"
+  default     = "Basic"
+}
+
 resource "heroku_app" "production" {
   name   = var.app-name
   region = "eu"
@@ -31,8 +41,8 @@ resource "heroku_addon" "postgresql" {
 resource "heroku_formation" "production" {
   app_id   = heroku_app.production.id
   type     = "web"
-  quantity = 1
-  size     = "Basic"
+  quantity = var.heroku_dyno_qty
+  size     = var.heroku_dyno_size
 }
 
 resource "heroku_ssl" "production" {
