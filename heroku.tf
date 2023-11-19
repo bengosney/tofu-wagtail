@@ -46,17 +46,17 @@ resource "heroku_formation" "production" {
 }
 
 resource "heroku_ssl" "production" {
+  count             = var.heroku_dyno_size == "Eco" ? 0 : 1
   app_id            = heroku_app.production.uuid
   certificate_chain = cloudflare_origin_ca_certificate.origin_cert.certificate
   private_key       = tls_private_key.origin_cert.private_key_pem
-
-  depends_on = [heroku_formation.production]
+  depends_on        = [heroku_formation.production]
 }
 
 resource "heroku_domain" "production" {
   app_id          = heroku_app.production.id
   hostname        = "www.${var.domain}"
-  sni_endpoint_id = heroku_ssl.production.id
+  sni_endpoint_id = var.heroku_dyno_size == "Eco" ? null : heroku_ssl.production[0].id
 }
 
 output "production_app_url" {
