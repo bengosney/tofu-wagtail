@@ -59,7 +59,7 @@ resource "aws_cloudfront_distribution" "cdn" {
     compress               = true
     smooth_streaming       = false
     target_origin_id       = local.s3_origin_id
-    viewer_protocol_policy = "allow-all"
+    viewer_protocol_policy = "redirect-to-https"
     cache_policy_id        = local.cache_policy_CachingOptimized
   }
   ordered_cache_behavior {
