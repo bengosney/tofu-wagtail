@@ -25,13 +25,26 @@ resource "aws_s3_bucket_policy" "access" {
   policy = data.aws_iam_policy_document.s3_access.json
 }
 
+resource "aws_cloudfront_origin_access_identity" "cdn" {
+  comment = "cdn"
+}
+
+resource "aws_s3_bucket_public_access_block" "cdn" {
+  bucket = aws_s3_bucket.bucket.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 data "aws_iam_policy_document" "s3_access" {
   statement {
     actions = ["s3:GetObject"]
     effect  = "Allow"
     principals {
       type        = "AWS"
-      identifiers = ["*"]
+      identifiers = [aws_cloudfront_origin_access_identity.cdn.iam_arn]
     }
     resources = ["${aws_s3_bucket.bucket.arn}/*"]
     sid       = "PublicReadForGetBucketObjects"
@@ -85,6 +98,9 @@ resource "aws_cloudfront_distribution" "cdn" {
   origin {
     domain_name = aws_s3_bucket.bucket.bucket_regional_domain_name
     origin_id   = local.s3_origin_id
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.cdn.cloudfront_access_identity_path
+    }
   }
   restrictions {
     geo_restriction {
