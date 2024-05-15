@@ -1,5 +1,11 @@
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token"
+  sensitive   = true
+}
 
-provider "cloudflare" {}
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}
 
 variable "zone-id" {
   description = "Cloudflare zone ID"
