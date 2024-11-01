@@ -42,6 +42,9 @@ endif
 ifndef TERAFORM_BUCKET_PATH
 	$(error "TERAFORM_BUCKET_PATH is required!")
 endif
+ifneq ($(strip $(CMD)),)
+	$(error "Neither Terraform or OpenTofu is installed!")
+endif
 
 clean: ## Remove fetched files
 	@rm -f imports.tf terraform.tfvars
