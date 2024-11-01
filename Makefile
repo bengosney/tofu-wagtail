@@ -42,7 +42,7 @@ endif
 ifndef TERAFORM_BUCKET_PATH
 	$(error "TERAFORM_BUCKET_PATH is required!")
 endif
-ifneq ($(strip $(CMD)),)
+ifeq ($(strip $(CMD)),)
 	$(error "Neither Terraform or OpenTofu is installed!")
 endif
 
